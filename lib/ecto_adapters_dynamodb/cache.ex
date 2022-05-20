@@ -61,7 +61,7 @@ defmodule Ecto.Adapters.DynamoDB.Cache do
 
   @spec describe_table(Repo.t(), table_name_t) :: {:ok, dynamo_response_t} | {:error, term}
   def describe_table(repo, table_name),
-    do: Agent.get_and_update(agent(repo), &do_describe_table(&1, table_name))
+    do: Agent.get_and_update(agent(repo), &do_describe_table(&1, table_name), 60_000)
 
   @doc """
   Performs a DynamoDB, describe-table, and caches (without returning) the result. Raises any errors as a result of the request
@@ -76,7 +76,7 @@ defmodule Ecto.Adapters.DynamoDB.Cache do
 
   @spec update_table_info(Repo.t(), table_name_t) :: :ok | {:error, term}
   def update_table_info(repo, table_name),
-    do: Agent.get_and_update(agent(repo), &do_update_table_info(&1, table_name))
+    do: Agent.get_and_update(agent(repo), &do_update_table_info(&1, table_name), 60_000)
 
   @doc """
   Returns the cached first page of results for a table. Performs a DynamoDB scan if not yet cached and raises any errors as a result of the request
@@ -91,7 +91,7 @@ defmodule Ecto.Adapters.DynamoDB.Cache do
 
   @spec scan(Repo.t(), table_name_t) :: {:ok, dynamo_response_t} | {:error, term}
   def scan(repo, table_name),
-    do: Agent.get_and_update(agent(repo), &do_scan(&1, table_name))
+    do: Agent.get_and_update(agent(repo), &do_scan(&1, table_name), 60_000)
 
   @doc """
   Performs a DynamoDB scan and caches (without returning) the first page of results. Raises any errors as a result of the request
@@ -106,14 +106,14 @@ defmodule Ecto.Adapters.DynamoDB.Cache do
 
   @spec update_cached_table(Repo.t(), table_name_t) :: :ok | {:error, term}
   def update_cached_table(repo, table_name),
-    do: Agent.get_and_update(agent(repo), &do_update_cached_table(&1, table_name))
+    do: Agent.get_and_update(agent(repo), &do_update_cached_table(&1, table_name), 60_000)
 
   @doc """
   Returns the current cache of table schemas, and cache of first page of results for selected tables, as an Elixir map
   """
   # For testing and debugging use only:
   def get_cache(repo),
-    do: Agent.get(agent(repo), & &1)
+    do: Agent.get(agent(repo), & &1, 60_000)
 
   defp do_describe_table(cache, table_name) do
     case cache.schemas[table_name] do
